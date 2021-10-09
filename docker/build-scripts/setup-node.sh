@@ -5,10 +5,16 @@ groupadd -r decentralchain --gid=999
 useradd -r -g decentralchain --uid=999 --home-dir=$WVDATA --shell=/bin/bash decentralchain
 
 # Install DEB packages
+mv /tmp/decentralchain.deb /tmp/decentralchain_original.deb
+mkdir /tmp/decentralchain_path_fix
+dpkg-deb -R /tmp/decentralchain_original.deb /tmp/decentralchain_path_fix
+sed -i 's%^%/%g' /tmp/decentralchain_path_fix/DEBIAN/conffiles
+dpkg-deb -b /tmp/decentralchain_path_fix /tmp/decentralchain.deb
 dpkg -i /tmp/decentralchain.deb || exit 1
+
 if [[ $ENABLE_GRPC == "true" ]]; then
-  echo "Installing gRPC server"
-  dpkg -i /tmp/grpc-server.deb || exit 1
+    echo "Installing gRPC server"
+    dpkg -i /tmp/decentralchain-grpc-server.deb || exit 1
 fi
 
 # Set permissions

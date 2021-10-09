@@ -62,7 +62,7 @@ object FeeValidation {
   private def notEnoughFeeError(txType: Byte, feeDetails: FeeDetails, feeAmount: Long): ValidationError = {
     val txName      = Constants.TransactionNames(txType)
     val actualFee   = s"$feeAmount in ${feeDetails.asset.fold("DCC")(_.id.toString)}"
-    val requiredFee = s"${feeDetails.minFeeInWaves} WAVES${feeDetails.asset.fold("")(id => s" or ${feeDetails.minFeeInAsset} ${id.id.toString}")}"
+    val requiredFee = s"${feeDetails.minFeeInWaves} DCC${feeDetails.asset.fold("")(id => s" or ${feeDetails.minFeeInAsset} ${id.id.toString}")}"
 
     val errorMessage = s"Fee for $txName ($actualFee) does not exceed minimal value of $requiredFee."
 
@@ -127,7 +127,7 @@ object FeeValidation {
   }
 
   private def feeAfterSmartTokens(blockchain: Blockchain, tx: Transaction)(inputFee: FeeInfo): FeeInfo = {
-    val FeeInfo(feeAssetInfo, reqirements, feeAmount) = inputFee
+    val FeeInfo(feeAssetInfo, requirements, feeAmount) = inputFee
 
     val tokenIsSmart: Boolean =
       feeAssetInfo
@@ -136,8 +136,9 @@ object FeeValidation {
         .exists(_.script.isDefined)
 
     val assetsCount = tx match {
-      case tx: ExchangeTransaction => tx.checkedAssets.count(blockchain.hasAssetScript) /* *3 if we decide to check orders and transaction */
-      case _                       => tx.checkedAssets.count(blockchain.hasAssetScript)
+      case _: InvokeScriptTransaction if blockchain.isFeatureActivated(BlockchainFeatures.SynchronousCalls) => 0
+      case tx: ExchangeTransaction                                                                          => tx.checkedAssets.count(blockchain.hasAssetScript) /* *3 if we decide to check orders and transaction */
+      case _                                                                                                => tx.checkedAssets.count(blockchain.hasAssetScript)
     }
 
     val finalAssetsCount =
@@ -146,17 +147,17 @@ object FeeValidation {
 
     val extraFee = finalAssetsCount * ScriptExtraFee
 
-    val extraRequeirements =
+    val extraRequirements =
       if (finalAssetsCount > 0)
         Chain(s"Transaction involves $finalAssetsCount scripted assets. Requires $extraFee extra fee")
       else Chain.empty
 
-    FeeInfo(feeAssetInfo, extraRequeirements ++ reqirements, feeAmount + extraFee)
+    FeeInfo(feeAssetInfo, extraRequirements ++ requirements, feeAmount + extraFee)
   }
 
   private def feeAfterSmartAccounts(blockchain: Blockchain, tx: Transaction)(inputFee: FeeInfo): FeeInfo = {
     val smartAccountScriptsCount: Int = tx match {
-      case tx: Transaction with Authorized => if (blockchain.hasAccountScript(tx.sender.toAddress)) 1 else 0
+      case tx: Transaction with Authorized => if (blockchain.hasPaidVerifier(tx.sender.toAddress)) 1 else 0
       case _                               => 0
     }
 

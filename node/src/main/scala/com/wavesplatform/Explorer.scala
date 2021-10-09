@@ -244,7 +244,7 @@ object Explorer extends ScorexLogging {
 
               for {
                 idx <- Try(Shorts.fromByteArray(k.slice(6, 8)))
-                tx  =  readTransactionBytes(entry.getValue) match {
+                tx = readTransactionBytes(entry.getValue) match {
                   case (_, Left(legacyBytes)) => TransactionParsers.parseBytes(legacyBytes).get
                   case (_, Right(newBytes))   => PBTransactions.vanilla(PBSignedTransaction.parseFrom(newBytes)).explicitGet()
                 }
@@ -258,7 +258,7 @@ object Explorer extends ScorexLogging {
         case "AP" =>
           val address = Address.fromString(argument(1, "address")).explicitGet()
           val pf      = portfolio(db, reader, address)
-          log.info(s"$address : ${pf.balance} WAVES, ${pf.lease}, ${pf.assets.size} assets")
+          log.info(s"$address : ${pf.balance} DCC, ${pf.lease}, ${pf.assets.size} assets")
           pf.assets.toSeq.sortBy(_._1.toString) foreach {
             case (assetId, balance) => log.info(s"$assetId : $balance")
           }

@@ -184,12 +184,12 @@
     "name" : "assetBalance",
     "params" : [ "Address|Alias", "ByteVector|Unit" ],
     "doc" : "get asset balance for account",
-    "paramsDoc" : [ "account", "assetId (WAVES if none)" ],
+    "paramsDoc" : [ "account", "assetId (DCC if none)" ],
     "complexity": 100
   }, {
     "name" : "wavesBalance",
     "params" : [ "Address|Alias" ],
-    "doc" : "get WAVES balance for account",
+    "doc" : "get DCC balance for account",
     "paramsDoc" : [ "account" ],
     "complexity": 109
   }, {
@@ -201,7 +201,7 @@
   }, {
     "name" : "fraction",
     "params" : [ "Int", "Int", "Int" ],
-    "doc" : "Multiply and division with big integer intermediate representation",
+    "doc" : "Multiply and division with unlimited intermediate representation",
     "paramsDoc" : [ "multiplier", "multiplier", "divisor" ],
     "complexity": 1
   }, {
